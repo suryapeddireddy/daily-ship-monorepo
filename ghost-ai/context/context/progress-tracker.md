@@ -8,15 +8,15 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Goal
 
-- Feature 01: Cyber Midnight Design System & Primitives
+- Feature 02: Structural Editor Workspace Frame Shell
 
 ## Completed
 
-- None yet.
+- Feature 01: Cyber Midnight Design System & Primitives
 
 ## In Progress
 
-- Feature 01: Cyber Midnight Design System & Primitives — install the class merger, configure the global design tokens, and add the base UI primitives.
+- Feature 02: Structural Editor Workspace Frame Shell — create the editor navbar and project sidebar with local open/close state.
 
 ## Next Up
 
