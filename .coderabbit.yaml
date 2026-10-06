@@ -1,0 +1,8 @@
+version: "1.0"
+language: "en-US"
+reviews:
+  profile: "assertive" # High-fidelity strict review style matching the course
+  # 🎯 Restrict CodeRabbit's focus completely to our active ghost-ai codebase
+  path_filters:
+    - "ghost-ai/**/*"   # Scan changes inside our active system design project
+    - "!**/*"           # Ignore every other folder and project in the monorepo for now
