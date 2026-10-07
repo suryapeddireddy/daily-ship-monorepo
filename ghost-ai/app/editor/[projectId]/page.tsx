@@ -29,10 +29,10 @@ export default function EditorWorkspaceDemo() {
     <div className="relative flex h-screen w-screen flex-col bg-[#0B0F19] text-[#F8FAFC] font-sans antialiased overflow-hidden select-none">
       
       {/* 🧭 Persistent Fixed Top Navigation Bar */}
-      {/* Passing our toggle function down to overwrite the navbar's menu click trigger */}
-      <div onClick={() => setSidebarOpen(true)}>
-        <EditorNavbar />
-      </div>
+      <EditorNavbar
+        isSidebarOpen={sidebarOpen}
+        onMenuClick={() => setSidebarOpen((current) => !current)}
+      />
 
       {/* 🖥️ Main System Design Application Body Workspace */}
       <div className="relative flex flex-1 overflow-hidden">

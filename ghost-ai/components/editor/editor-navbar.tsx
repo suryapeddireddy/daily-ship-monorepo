@@ -1,6 +1,7 @@
 "use client";
 
-import { Menu, Share2, UserRound } from "lucide-react";
+import { UserButton } from "@clerk/nextjs";
+import { Menu, Share2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 
@@ -14,7 +15,7 @@ export function EditorNavbar({
   onMenuClick,
 }: EditorNavbarProps) {
   return (
-    <header className="relative z-40 flex h-14 shrink-0 items-center justify-between border-b border-white/[0.06] bg-[var(--panel)] px-4">
+    <header className="relative z-40 flex h-14 shrink-0 items-center justify-between border-b border-[var(--border)] bg-[var(--panel)] px-4">
       <div className="flex flex-1 items-center">
         <Button
           type="button"
@@ -39,15 +40,21 @@ export function EditorNavbar({
           <Share2 aria-hidden="true" />
           Share
         </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          aria-label="User settings"
-          disabled
-        >
-          <UserRound aria-hidden="true" />
-        </Button>
+        <UserButton
+          appearance={{
+            elements: {
+              userButtonTrigger:
+                "border border-[var(--border)] bg-[var(--panel)] text-[var(--text-primary)] hover:bg-[var(--background)]",
+              userButtonPopoverCard:
+                "border border-[var(--border)] bg-[var(--panel)] text-[var(--text-primary)] shadow-none",
+              userButtonPopoverActionButton:
+                "text-[var(--text-primary)] hover:bg-[var(--background)]",
+              userButtonPopoverActionButtonText: "text-[var(--text-primary)]",
+              userButtonPopoverFooter:
+                "border-t border-[var(--border)] bg-[var(--background)]",
+            },
+          }}
+        />
       </div>
     </header>
   );

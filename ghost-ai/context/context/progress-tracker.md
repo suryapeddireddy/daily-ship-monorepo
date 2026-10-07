@@ -8,15 +8,16 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Goal
 
-- Feature 02: Structural Editor Workspace Frame Shell
+- Feature 03: Authentication
 
 ## Completed
 
 - Feature 01: Cyber Midnight Design System & Primitives
+- Feature 02: Structural Editor Workspace Frame Shell
 
 ## In Progress
 
-- Feature 02: Structural Editor Workspace Frame Shell — create the editor navbar and project sidebar with local open/close state.
+- Feature 03: Authentication — integrate Clerk provider, route protection, themed dark auth screens, and navbar user account injection.
 
 ## Next Up
 
