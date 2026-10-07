@@ -14,6 +14,7 @@ Update this file whenever the current phase, active feature, or implementation s
 
 - Feature 01: Cyber Midnight Design System & Primitives
 - Feature 02: Structural Editor Workspace Frame Shell
+- Feature 04: Project Dialogues & Workspace Management Shell (local mock state only).
 
 ## In Progress
 
@@ -33,4 +34,4 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Session Notes
 
-- Add context needed to resume work in the next session.
+- Phase 4 dashboard, local project state, and create/rename/delete dialog sheets are implemented. ESLint and TypeScript checks pass.

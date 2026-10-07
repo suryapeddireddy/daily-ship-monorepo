@@ -8,11 +8,13 @@ import { Button } from "@/components/ui/button";
 interface EditorNavbarProps {
   isSidebarOpen: boolean;
   onMenuClick: () => void;
+  projectName: string | null;
 }
 
 export function EditorNavbar({
   isSidebarOpen,
   onMenuClick,
+  projectName,
 }: EditorNavbarProps) {
   return (
     <header className="relative z-40 flex h-14 shrink-0 items-center justify-between border-b border-[var(--border)] bg-[var(--panel)] px-4">
@@ -31,7 +33,7 @@ export function EditorNavbar({
 
       <div className="flex flex-1 justify-center">
         <h1 className="truncate text-sm font-medium tracking-tight text-[var(--text-primary)]">
-          Untitled System
+          {projectName ?? "Untitled System"}
         </h1>
       </div>
 
