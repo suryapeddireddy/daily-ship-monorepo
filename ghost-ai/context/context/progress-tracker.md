@@ -8,16 +8,19 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Goal
 
-- Feature 03: Authentication
+- Feature 06: Project CRUD Backend REST API
 
 ## Completed
 
 - Feature 01: Cyber Midnight Design System & Primitives
 - Feature 02: Structural Editor Workspace Frame Shell
+- Feature 04: Project Dialogues & Workspace Management Shell (local mock state only).
+- Phase 05: Prisma & PostgreSQL Database Layer Initialization.
 
 ## In Progress
 
 - Feature 03: Authentication — integrate Clerk provider, route protection, themed dark auth screens, and navbar user account injection.
+- Feature 06: Project CRUD Backend REST API — implement authenticated Prisma-backed collection and resource handlers. Status: IN_PROGRESS.
 
 ## Next Up
 
@@ -33,4 +36,5 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Session Notes
 
-- Add context needed to resume work in the next session.
+- Phase 4 dashboard, local project state, and create/rename/delete dialog sheets are implemented. ESLint and TypeScript checks pass.
+- Phase 05 Prisma schema, cached client, and initial PostgreSQL migration are implemented and applied. Prisma validation, generation, migration status, ESLint, and TypeScript checks pass.

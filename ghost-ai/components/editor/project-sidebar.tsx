@@ -1,6 +1,6 @@
 "use client";
 
-import { Plus, X } from "lucide-react";
+import { FolderKanban, Pencil, Plus, Trash2, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -9,13 +9,29 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
+import type { WorkspaceProject } from "@/hooks/use-project-dialogs";
 
 interface ProjectSidebarProps {
   isOpen: boolean;
   onClose: () => void;
+  projects: WorkspaceProject[];
+  activeProjectId: string | null;
+  onSelectProject: (projectId: string) => void;
+  onCreateProject: () => void;
+  onRenameProject: (project: WorkspaceProject) => void;
+  onDeleteProject: (project: WorkspaceProject) => void;
 }
 
-export function ProjectSidebar({ isOpen, onClose }: ProjectSidebarProps) {
+export function ProjectSidebar({
+  isOpen,
+  onClose,
+  projects,
+  activeProjectId,
+  onSelectProject,
+  onCreateProject,
+  onRenameProject,
+  onDeleteProject,
+}: ProjectSidebarProps) {
   return (
     <>
       {isOpen && (
@@ -65,10 +81,60 @@ export function ProjectSidebar({ isOpen, onClose }: ProjectSidebarProps) {
             value="my-systems"
             className="flex min-h-0 flex-1 flex-col px-3 pb-3 pt-4"
           >
-            <p className="flex flex-1 items-center justify-center text-center text-sm text-muted-foreground">
-              No systems yet
-            </p>
-            <Button type="button" className="w-full">
+            <div className="flex-1 space-y-1 overflow-y-auto">
+              {projects.length === 0 ? (
+                <p className="px-2 py-6 text-center text-sm text-muted-foreground">
+                  No projects yet
+                </p>
+              ) : (
+                projects.map((project) => (
+                  <div
+                    key={project.id}
+                    className={`group flex items-center gap-1 rounded-md border border-transparent p-1 transition-colors ${
+                      activeProjectId === project.id
+                        ? "border-white/[0.06] bg-background"
+                        : "hover:bg-background/70"
+                    }`}
+                  >
+                    <button
+                      type="button"
+                      className="flex min-w-0 flex-1 items-center gap-2 rounded px-2 py-1.5 text-left text-sm"
+                      aria-current={
+                        activeProjectId === project.id ? "page" : undefined
+                      }
+                      onClick={() => onSelectProject(project.id)}
+                    >
+                      <FolderKanban
+                        aria-hidden="true"
+                        className="h-4 w-4 shrink-0 text-muted-foreground"
+                      />
+                      <span className="truncate">{project.name}</span>
+                    </button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon-sm"
+                      aria-label={`Rename ${project.name}`}
+                      title={`Rename ${project.name}`}
+                      onClick={() => onRenameProject(project)}
+                    >
+                      <Pencil aria-hidden="true" />
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon-sm"
+                      aria-label={`Delete ${project.name}`}
+                      title={`Delete ${project.name}`}
+                      onClick={() => onDeleteProject(project)}
+                    >
+                      <Trash2 aria-hidden="true" />
+                    </Button>
+                  </div>
+                ))
+              )}
+            </div>
+            <Button type="button" className="w-full" onClick={onCreateProject}>
               <Plus aria-hidden="true" />
               Create Project
             </Button>
