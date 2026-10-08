@@ -38,3 +38,4 @@ Update this file whenever the current phase, active feature, or implementation s
 
 - Phase 4 dashboard, local project state, and create/rename/delete dialog sheets are implemented. ESLint and TypeScript checks pass.
 - Phase 05 Prisma schema, cached client, and initial PostgreSQL migration are implemented and applied. Prisma validation, generation, migration status, ESLint, and TypeScript checks pass.
+- Added UUID format guards to the project PATCH and DELETE handlers so malformed project IDs return 404 before Prisma lookups.

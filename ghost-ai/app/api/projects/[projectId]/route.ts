@@ -5,6 +5,8 @@ interface ProjectRouteContext {
   params: Promise<{ projectId: string }>;
 }
 
+const UUID_REGEX = /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i;
+
 export async function PATCH(request: Request, context: ProjectRouteContext) {
   const { isAuthenticated, userId } = await auth();
   if (!isAuthenticated || !userId) {
@@ -12,6 +14,10 @@ export async function PATCH(request: Request, context: ProjectRouteContext) {
   }
 
   const { projectId } = await context.params;
+  if (!UUID_REGEX.test(projectId)) {
+    return Response.json({ error: "Project not found" }, { status: 404 });
+  }
+
   const project = await prisma.project.findUnique({
     where: { id: projectId },
     select: { ownerId: true },
@@ -56,6 +62,10 @@ export async function DELETE(_request: Request, context: ProjectRouteContext) {
   }
 
   const { projectId } = await context.params;
+  if (!UUID_REGEX.test(projectId)) {
+    return Response.json({ error: "Project not found" }, { status: 404 });
+  }
+
   const project = await prisma.project.findUnique({
     where: { id: projectId },
     select: { ownerId: true },
