@@ -10,6 +10,9 @@
   },
   "dependencies": {
     "@clerk/nextjs": "^7.9.11",
+    "@liveblocks/client": "^3.24.3",
+    "@liveblocks/node": "^3.24.3",
+    "@liveblocks/react": "^3.24.3",
     "@prisma/client": "^6.19.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

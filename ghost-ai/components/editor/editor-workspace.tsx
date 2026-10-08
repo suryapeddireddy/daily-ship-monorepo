@@ -50,7 +50,7 @@ export function EditorWorkspace({
               {dialogs.activeProject.name}
             </h2>
             <p className="mt-2 text-sm text-muted-foreground">
-              Your workspace is ready. Canvas tools will appear here.
+              Connecting to live session space...
             </p>
           </div>
         ) : (
