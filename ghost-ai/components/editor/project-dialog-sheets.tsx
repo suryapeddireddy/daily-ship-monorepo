@@ -180,10 +180,16 @@ export function ProjectDialogSheets({ dialogs }: ProjectDialogSheetsProps) {
           <DialogHeader className="gap-2">
             <DialogTitle className="text-lg">Delete project?</DialogTitle>
             <DialogDescription>
-              This will remove <strong>{focusedProject.name}</strong> from this
-              local workspace list. This action cannot be undone.
+              This will permanently delete{" "}
+              <strong>{focusedProject.name}</strong>. This action cannot be
+              undone.
             </DialogDescription>
           </DialogHeader>
+          {formError && (
+            <p className="text-xs text-destructive" role="alert">
+              {formError}
+            </p>
+          )}
           <DialogFooter className="border-0 bg-transparent p-0 sm:justify-end">
             <Button
               type="button"

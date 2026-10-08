@@ -21,7 +21,7 @@ export default async function SignUpPage() {
   const { userId } = await auth();
 
   if (userId) {
-    redirect("/editor/sandbox-project");
+    redirect("/editor");
   }
 
   return (

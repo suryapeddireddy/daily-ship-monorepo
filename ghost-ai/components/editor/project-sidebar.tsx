@@ -83,55 +83,70 @@ export function ProjectSidebar({
           >
             <div className="flex-1 space-y-1 overflow-y-auto">
               {projects.length === 0 ? (
-                <p className="px-2 py-6 text-center text-sm text-muted-foreground">
-                  No projects yet
-                </p>
+                <div className="mx-1 flex flex-col items-center gap-2 rounded-xl border border-white/[0.06] bg-background/60 px-4 py-6 text-center">
+                  <FolderKanban
+                    aria-hidden="true"
+                    className="h-8 w-8 text-muted-foreground"
+                  />
+                  <p className="text-sm text-muted-foreground">
+                    Welcome to your AI workspace. Create your first project to
+                    get started.
+                  </p>
+                </div>
               ) : (
-                projects.map((project) => (
-                  <div
-                    key={project.id}
-                    className={`group flex items-center gap-1 rounded-md border border-transparent p-1 transition-colors ${
-                      activeProjectId === project.id
-                        ? "border-white/[0.06] bg-background"
-                        : "hover:bg-background/70"
-                    }`}
-                  >
-                    <button
-                      type="button"
-                      className="flex min-w-0 flex-1 items-center gap-2 rounded px-2 py-1.5 text-left text-sm"
-                      aria-current={
-                        activeProjectId === project.id ? "page" : undefined
-                      }
-                      onClick={() => onSelectProject(project.id)}
-                    >
-                      <FolderKanban
-                        aria-hidden="true"
-                        className="h-4 w-4 shrink-0 text-muted-foreground"
-                      />
-                      <span className="truncate">{project.name}</span>
-                    </button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon-sm"
-                      aria-label={`Rename ${project.name}`}
-                      title={`Rename ${project.name}`}
-                      onClick={() => onRenameProject(project)}
-                    >
-                      <Pencil aria-hidden="true" />
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon-sm"
-                      aria-label={`Delete ${project.name}`}
-                      title={`Delete ${project.name}`}
-                      onClick={() => onDeleteProject(project)}
-                    >
-                      <Trash2 aria-hidden="true" />
-                    </Button>
-                  </div>
-                ))
+                projects.filter((project) => project.isOwner).length === 0 ? (
+                  <p className="px-2 py-6 text-center text-sm text-muted-foreground">
+                    No projects created by you yet.
+                  </p>
+                ) : (
+                  projects
+                    .filter((project) => project.isOwner)
+                    .map((project) => (
+                      <div
+                        key={project.id}
+                        className={`group flex items-center gap-1 rounded-md border border-transparent p-1 transition-colors ${
+                          activeProjectId === project.id
+                            ? "border-white/[0.06] bg-background"
+                            : "hover:bg-background/70"
+                        }`}
+                      >
+                        <button
+                          type="button"
+                          className="flex min-w-0 flex-1 items-center gap-2 rounded px-2 py-1.5 text-left text-sm"
+                          aria-current={
+                            activeProjectId === project.id ? "page" : undefined
+                          }
+                          onClick={() => onSelectProject(project.id)}
+                        >
+                          <FolderKanban
+                            aria-hidden="true"
+                            className="h-4 w-4 shrink-0 text-muted-foreground"
+                          />
+                          <span className="truncate">{project.name}</span>
+                        </button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon-sm"
+                          aria-label={`Rename ${project.name}`}
+                          title={`Rename ${project.name}`}
+                          onClick={() => onRenameProject(project)}
+                        >
+                          <Pencil aria-hidden="true" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon-sm"
+                          aria-label={`Delete ${project.name}`}
+                          title={`Delete ${project.name}`}
+                          onClick={() => onDeleteProject(project)}
+                        >
+                          <Trash2 aria-hidden="true" />
+                        </Button>
+                      </div>
+                    ))
+                )
               )}
             </div>
             <Button type="button" className="w-full" onClick={onCreateProject}>
@@ -142,9 +157,37 @@ export function ProjectSidebar({
 
           <TabsContent
             value="shared-workspaces"
-            className="px-4 py-6 text-sm text-muted-foreground"
+            className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto px-3 pb-3 pt-4"
           >
-            Shared workspaces will appear here.
+            {projects.filter((project) => !project.isOwner).length === 0 ? (
+              <p className="px-2 py-6 text-center text-sm text-muted-foreground">
+                Shared workspaces will appear here.
+              </p>
+            ) : (
+              projects
+                .filter((project) => !project.isOwner)
+                .map((project) => (
+                  <button
+                    key={project.id}
+                    type="button"
+                    className={`flex min-w-0 items-center gap-2 rounded-md border border-transparent px-3 py-2 text-left text-sm transition-colors ${
+                      activeProjectId === project.id
+                        ? "border-white/[0.06] bg-background"
+                        : "hover:bg-background/70"
+                    }`}
+                    aria-current={
+                      activeProjectId === project.id ? "page" : undefined
+                    }
+                    onClick={() => onSelectProject(project.id)}
+                  >
+                    <FolderKanban
+                      aria-hidden="true"
+                      className="h-4 w-4 shrink-0 text-muted-foreground"
+                    />
+                    <span className="truncate">{project.name}</span>
+                  </button>
+                ))
+            )}
           </TabsContent>
         </Tabs>
       </aside>

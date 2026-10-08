@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { FolderOpen, Sparkles } from "lucide-react";
 
@@ -7,10 +8,20 @@ import { EditorNavbar } from "@/components/editor/editor-navbar";
 import { ProjectDialogSheets } from "@/components/editor/project-dialog-sheets";
 import { ProjectSidebar } from "@/components/editor/project-sidebar";
 import { useProjectDialogs } from "@/hooks/use-project-dialogs";
+import type { ProjectSummary } from "@/lib/projects";
 
-export function EditorWorkspace() {
+interface EditorWorkspaceProps {
+  projects: ProjectSummary[];
+  activeProjectId: string | null;
+}
+
+export function EditorWorkspace({
+  projects,
+  activeProjectId,
+}: EditorWorkspaceProps) {
+  const router = useRouter();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const dialogs = useProjectDialogs();
+  const dialogs = useProjectDialogs(projects, activeProjectId);
 
   function toggleSidebar() {
     setIsSidebarOpen((open) => !open);
@@ -51,8 +62,8 @@ export function EditorWorkspace() {
               Welcome to Ghost AI
             </h2>
             <p className="mt-2 text-sm text-muted-foreground">
-              Create a project or open an existing workspace from the left
-              panel.
+              Welcome to your AI workspace. Create your first project to get
+              started.
             </p>
           </div>
         )}
@@ -62,7 +73,7 @@ export function EditorWorkspace() {
         onClose={() => setIsSidebarOpen(false)}
         projects={dialogs.projects}
         activeProjectId={dialogs.activeProjectId}
-        onSelectProject={dialogs.setActiveProjectId}
+        onSelectProject={(projectId) => router.push(`/editor/${projectId}`)}
         onCreateProject={dialogs.openCreateDialog}
         onRenameProject={dialogs.openRenameDialog}
         onDeleteProject={dialogs.openDeleteDialog}

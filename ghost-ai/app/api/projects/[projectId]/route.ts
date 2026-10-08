@@ -1,11 +1,11 @@
 import { auth } from "@clerk/nextjs/server";
-import { prisma } from "../../../../lib/prisma";
+import { isProjectId } from "@/lib/projects";
+import { normalizeProjectName } from "@/lib/project-name";
+import { prisma } from "@/lib/prisma";
 
 interface ProjectRouteContext {
   params: Promise<{ projectId: string }>;
 }
-
-const UUID_REGEX = /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i;
 
 export async function PATCH(request: Request, context: ProjectRouteContext) {
   const { isAuthenticated, userId } = await auth();
@@ -14,21 +14,8 @@ export async function PATCH(request: Request, context: ProjectRouteContext) {
   }
 
   const { projectId } = await context.params;
-  if (!UUID_REGEX.test(projectId)) {
+  if (!isProjectId(projectId)) {
     return Response.json({ error: "Project not found" }, { status: 404 });
-  }
-
-  const project = await prisma.project.findUnique({
-    where: { id: projectId },
-    select: { ownerId: true },
-  });
-
-  if (!project) {
-    return Response.json({ error: "Project not found" }, { status: 404 });
-  }
-
-  if (project.ownerId !== userId) {
-    return Response.json({ error: "Forbidden" }, { status: 403 });
   }
 
   let body: unknown;
@@ -47,9 +34,30 @@ export async function PATCH(request: Request, context: ProjectRouteContext) {
     return Response.json({ error: "A project name is required" }, { status: 400 });
   }
 
+  const name = normalizeProjectName(payload.name);
+  if (!name) {
+    return Response.json(
+      { error: "Project names must include at least one letter or number." },
+      { status: 400 },
+    );
+  }
+
+  const project = await prisma.project.findUnique({
+    where: { id: projectId },
+    select: { ownerId: true },
+  });
+
+  if (!project) {
+    return Response.json({ error: "Project not found" }, { status: 404 });
+  }
+
+  if (project.ownerId !== userId) {
+    return Response.json({ error: "Forbidden" }, { status: 403 });
+  }
+
   const updatedProject = await prisma.project.update({
     where: { id: projectId, ownerId: userId },
-    data: { name: payload.name },
+    data: { name },
   });
 
   return Response.json(updatedProject);
@@ -62,7 +70,7 @@ export async function DELETE(_request: Request, context: ProjectRouteContext) {
   }
 
   const { projectId } = await context.params;
-  if (!UUID_REGEX.test(projectId)) {
+  if (!isProjectId(projectId)) {
     return Response.json({ error: "Project not found" }, { status: 404 });
   }
 

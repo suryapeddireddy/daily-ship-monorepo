@@ -16,6 +16,7 @@ Update this file whenever the current phase, active feature, or implementation s
 - Feature 02: Structural Editor Workspace Frame Shell
 - Feature 04: Project Dialogues & Workspace Management Shell (local mock state only).
 - Phase 05: Prisma & PostgreSQL Database Layer Initialization.
+- Feature 07: Wire Editor Home — hydrate the editor from Prisma and connect project creation, rename, and deletion to the authenticated project APIs.
 
 ## In Progress
 
@@ -39,3 +40,4 @@ Update this file whenever the current phase, active feature, or implementation s
 - Phase 4 dashboard, local project state, and create/rename/delete dialog sheets are implemented. ESLint and TypeScript checks pass.
 - Phase 05 Prisma schema, cached client, and initial PostgreSQL migration are implemented and applied. Prisma validation, generation, migration status, ESLint, and TypeScript checks pass.
 - Added UUID format guards to the project PATCH and DELETE handlers so malformed project IDs return 404 before Prisma lookups.
+- Feature 07 server-hydrates owner and verified-email collaborator projects by most recent update; editor project actions use the UUID API routes and expose mutation loading/errors. TypeScript compilation and targeted ESLint pass.

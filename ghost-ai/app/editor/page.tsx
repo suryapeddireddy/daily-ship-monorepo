@@ -1,5 +1,8 @@
-import { auth } from "@clerk/nextjs/server";
+import { auth, currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
+
+import { EditorWorkspace } from "@/components/editor/editor-workspace";
+import { getProjectsForUser } from "@/lib/projects";
 
 export default async function EditorLanding() {
   const { userId } = await auth();
@@ -8,5 +11,12 @@ export default async function EditorLanding() {
     redirect("/sign-in");
   }
 
-  redirect("/editor/sandbox-project");
+  const user = await currentUser();
+  const emailAddresses =
+    user?.emailAddresses
+      .filter(({ verification }) => verification?.status === "verified")
+      .map(({ emailAddress }) => emailAddress) ?? [];
+  const projects = await getProjectsForUser(userId, emailAddresses);
+
+  return <EditorWorkspace projects={projects} activeProjectId={null} />;
 }

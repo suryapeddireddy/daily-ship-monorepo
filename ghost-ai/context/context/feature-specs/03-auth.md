@@ -13,7 +13,7 @@ Integrate the complete identity and authentication layer using Clerk. Secure the
 1. **Context Providers:** Wrap your main layout file (`ghost-ai/app/layout.tsx`) with Clerk's `<ClerkProvider>` bundled with dark mode adjustments inside the `<body>` element.
 2. **Auth Interface View:** Create a sleek two-column desktop frame for auth screens. Left column presents core project branding and feature overviews. Right column centers the interactive `<SignIn>` or `<SignUp>` wrapper.
 3. **Routing Hooks:** 
-   - Signed-in sessions landing on the `/` index route automatically redirect to `/editor/sandbox-project`.
+   - Signed-in sessions landing on the `/` index route automatically redirect to `/editor`, where the server loads their workspaces.
    - Guest sessions targeting active workspaces are cleanly intercepted.
 4. **Navbar Injection:** Place Clerk's native `<UserButton />` component directly into the right-hand panel of our existing `editor-navbar.tsx` component.
 

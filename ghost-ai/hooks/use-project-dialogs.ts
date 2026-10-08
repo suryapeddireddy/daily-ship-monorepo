@@ -2,26 +2,13 @@
 
 import { useMemo, useState } from "react";
 
-export interface WorkspaceProject {
-  id: string;
-  name: string;
-  slug: string;
-}
+import type { ProjectSummary } from "@/lib/projects";
+import { useProjectActions } from "@/hooks/useProjectActions";
+import { normalizeProjectName } from "@/lib/project-name";
+
+export type WorkspaceProject = ProjectSummary;
 
 export type ProjectDialogType = "create" | "rename" | "delete" | null;
-
-const INITIAL_PROJECTS: WorkspaceProject[] = [
-  {
-    id: "mock-project-architecture",
-    name: "AI Architecture Studio",
-    slug: "ai-architecture-studio",
-  },
-  {
-    id: "mock-project-payments",
-    name: "Payments Platform",
-    slug: "payments-platform",
-  },
-];
 
 function createSlugSuffix(): string {
   return globalThis.crypto.randomUUID().replaceAll("-", "").slice(0, 5);
@@ -29,11 +16,11 @@ function createSlugSuffix(): string {
 
 function slugifyProjectName(name: string, suffix: string): string {
   const titleSlug = name
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase()
-    .replace(/[^a-z0-9\s]/g, "")
-    .trim()
-    .replace(/\s+/g, "-")
-    .replace(/-+/g, "-");
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
 
   if (!name.trim()) {
     return "";
@@ -42,15 +29,16 @@ function slugifyProjectName(name: string, suffix: string): string {
   return `${titleSlug || "project"}-${suffix}`;
 }
 
-export function useProjectDialogs() {
-  const [projects, setProjects] = useState(INITIAL_PROJECTS);
-  const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
+export function useProjectDialogs(
+  projects: WorkspaceProject[],
+  activeProjectId: string | null,
+) {
+  const actions = useProjectActions();
   const [activeDialog, setActiveDialog] = useState<ProjectDialogType>(null);
   const [focusedProjectId, setFocusedProjectId] = useState<string | null>(null);
   const [projectNameInput, setProjectNameInput] = useState("");
   const [slugSuffix, setSlugSuffix] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formError, setFormError] = useState<string | null>(null);
+  const [localFormError, setLocalFormError] = useState<string | null>(null);
 
   const activeProject = projects.find(
     (project) => project.id === activeProjectId,
@@ -62,86 +50,77 @@ export function useProjectDialogs() {
     () => slugifyProjectName(projectNameInput, slugSuffix),
     [projectNameInput, slugSuffix],
   );
+  const formError = localFormError ?? actions.error;
 
   function closeDialog() {
-    if (isSubmitting) {
+    if (actions.isLoading) {
       return;
     }
 
     setActiveDialog(null);
     setFocusedProjectId(null);
-    setFormError(null);
+    setLocalFormError(null);
   }
 
   function openCreateDialog() {
+    actions.clearError();
     setProjectNameInput("");
     setSlugSuffix(createSlugSuffix());
     setFocusedProjectId(null);
-    setFormError(null);
+    setLocalFormError(null);
     setActiveDialog("create");
   }
 
   function openRenameDialog(project: WorkspaceProject) {
+    actions.clearError();
     setFocusedProjectId(project.id);
     setProjectNameInput(project.name);
-    setFormError(null);
+    setLocalFormError(null);
     setActiveDialog("rename");
   }
 
   function openDeleteDialog(project: WorkspaceProject) {
+    actions.clearError();
     setFocusedProjectId(project.id);
     setProjectNameInput(project.name);
-    setFormError(null);
+    setLocalFormError(null);
     setActiveDialog("delete");
   }
 
   function updateProjectNameInput(value: string) {
     setProjectNameInput(value);
-    setFormError(null);
+    setLocalFormError(null);
   }
 
   async function submitCreate() {
-    const name = projectNameInput.trim();
+    const name = normalizeProjectName(projectNameInput);
     if (!name) {
-      setFormError("Enter a project name to continue.");
+      setLocalFormError("Project names must include at least one letter or number.");
       return;
     }
 
-    setIsSubmitting(true);
-    await new Promise<void>((resolve) => setTimeout(resolve, 350));
-
-    const project: WorkspaceProject = {
-      id: globalThis.crypto.randomUUID(),
-      name,
-      slug: generatedSlug,
-    };
-    setProjects((currentProjects) => [...currentProjects, project]);
-    setActiveProjectId(project.id);
-    setIsSubmitting(false);
-    setActiveDialog(null);
-    setFocusedProjectId(null);
+    const project = await actions.createProject(name);
+    if (project) {
+      setActiveDialog(null);
+      setFocusedProjectId(null);
+    }
   }
 
   async function submitRename() {
-    const name = projectNameInput.trim();
+    const name = normalizeProjectName(projectNameInput);
     if (!focusedProjectId) {
       return;
     }
     if (!name) {
-      setFormError("Enter a project name to continue.");
+      setLocalFormError("Project names must include at least one letter or number.");
       return;
     }
 
-    setIsSubmitting(true);
-    await new Promise<void>((resolve) => setTimeout(resolve, 350));
-    setProjects((currentProjects) =>
-      currentProjects.map((project) =>
-        project.id === focusedProjectId ? { ...project, name } : project,
-      ),
-    );
-    setIsSubmitting(false);
-    setActiveDialog(null);
-    setFocusedProjectId(null);
+    const renamed = await actions.renameProject(focusedProjectId, name);
+    if (renamed) {
+      setActiveDialog(null);
+      setFocusedProjectId(null);
+    }
   }
 
   async function submitDelete() {
@@ -149,34 +128,28 @@ export function useProjectDialogs() {
       return;
     }
 
-    setIsSubmitting(true);
-    await new Promise<void>((resolve) => setTimeout(resolve, 350));
-    setProjects((currentProjects) =>
-      currentProjects.filter((project) => project.id !== focusedProjectId),
-    );
-    setActiveProjectId((currentProjectId) =>
-      currentProjectId === focusedProjectId ? null : currentProjectId,
-    );
-    setIsSubmitting(false);
-    setActiveDialog(null);
-    setFocusedProjectId(null);
+    const deleted = await actions.deleteProject(focusedProjectId);
+    if (deleted) {
+      setActiveDialog(null);
+      setFocusedProjectId(null);
+    }
   }
 
   return {
     activeDialog,
     activeProject,
     activeProjectId,
+    error: actions.error,
     closeDialog,
     focusedProject,
     formError,
     generatedSlug,
-    isSubmitting,
+    isSubmitting: actions.isLoading,
     openCreateDialog,
     openDeleteDialog,
     openRenameDialog,
     projectNameInput,
     projects,
-    setActiveProjectId,
     setProjectNameInput,
     submitCreate,
     submitDelete,

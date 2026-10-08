@@ -7,7 +7,7 @@ export default async function HomePortal() {
   const { userId } = await auth();
 
   if (userId) {
-    redirect("/editor/sandbox-project");
+    redirect("/editor");
   }
 
   return (
