@@ -72,14 +72,14 @@ Smooth-step path with an arrow marker. Default edge color: `#f8fafc`. Stroke wid
 
 ### Node Shapes
 
-6 supported shapes, defined in `types/canvas.ts` as `NODE_SHAPES`. Complex shapes (diamond, hexagon, cylinder) are rendered as inline SVGs rather than CSS borders.
+4 supported shapes, defined in `types/canvas.ts` as `NODE_SHAPES`:
 
 - `rectangle` — default general-purpose node
+- `circle` — circular node
+- `rounded-square` — square node with rounded corners
 - `diamond` — decision / gateway
-- `circle` — event / endpoint
-- `pill` — service / process
-- `cylinder` — database / storage
-- `hexagon` — external system / boundary
+
+New nodes randomly start as a rectangle, circle, or rounded square. The property drawer can change a node to any supported shape.
 
 ### Connection Handles
 

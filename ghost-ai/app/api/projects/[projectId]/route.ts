@@ -30,18 +30,6 @@ export async function PATCH(request: Request, context: ProjectRouteContext) {
   }
 
   const payload = body as Record<string, unknown>;
-  if (typeof payload.name !== "string") {
-    return Response.json({ error: "A project name is required" }, { status: 400 });
-  }
-
-  const name = normalizeProjectName(payload.name);
-  if (!name) {
-    return Response.json(
-      { error: "Project names must include at least one letter or number." },
-      { status: 400 },
-    );
-  }
-
   const project = await prisma.project.findUnique({
     where: { id: projectId },
     select: { ownerId: true },
@@ -55,9 +43,67 @@ export async function PATCH(request: Request, context: ProjectRouteContext) {
     return Response.json({ error: "Forbidden" }, { status: 403 });
   }
 
+  const hasName = Object.prototype.hasOwnProperty.call(payload, "name");
+  const hasCanvasNodes = Object.prototype.hasOwnProperty.call(
+    payload,
+    "canvasNodes",
+  );
+  const hasCanvasEdges = Object.prototype.hasOwnProperty.call(
+    payload,
+    "canvasEdges",
+  );
+
+  if (!hasName && !hasCanvasNodes && !hasCanvasEdges) {
+    return Response.json({ error: "No project fields were provided" }, { status: 400 });
+  }
+
+  if (hasCanvasNodes !== hasCanvasEdges) {
+    return Response.json(
+      { error: "Canvas nodes and edges must be provided together" },
+      { status: 400 },
+    );
+  }
+
+  let name: string | undefined;
+  if (hasName) {
+    if (typeof payload.name !== "string") {
+      return Response.json(
+        { error: "A project name must be a string" },
+        { status: 400 },
+      );
+    }
+
+    const normalizedName = normalizeProjectName(payload.name);
+    if (!normalizedName) {
+      return Response.json(
+        { error: "Project names must include at least one letter or number." },
+        { status: 400 },
+      );
+    }
+    name = normalizedName;
+  }
+
+  let canvasBlobUrl: string | undefined;
+  if (hasCanvasNodes && hasCanvasEdges) {
+    if (!Array.isArray(payload.canvasNodes) || !Array.isArray(payload.canvasEdges)) {
+      return Response.json(
+        { error: "Canvas nodes and edges must be arrays" },
+        { status: 400 },
+      );
+    }
+
+    canvasBlobUrl = JSON.stringify({
+      canvasNodes: payload.canvasNodes,
+      canvasEdges: payload.canvasEdges,
+    });
+  }
+
   const updatedProject = await prisma.project.update({
     where: { id: projectId, ownerId: userId },
-    data: { name },
+    data: {
+      ...(name === undefined ? {} : { name }),
+      ...(canvasBlobUrl === undefined ? {} : { canvasBlobUrl }),
+    },
   });
 
   return Response.json(updatedProject);

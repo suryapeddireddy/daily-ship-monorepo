@@ -2,22 +2,25 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { FolderOpen, Sparkles } from "lucide-react";
+import { Sparkles } from "lucide-react";
 
 import { EditorNavbar } from "@/components/editor/editor-navbar";
 import { ProjectDialogSheets } from "@/components/editor/project-dialog-sheets";
 import { ProjectSidebar } from "@/components/editor/project-sidebar";
+import { WorkspaceCanvas } from "@/components/editor/workspace-canvas";
 import { useProjectDialogs } from "@/hooks/use-project-dialogs";
 import type { ProjectSummary } from "@/lib/projects";
 
 interface EditorWorkspaceProps {
   projects: ProjectSummary[];
   activeProjectId: string | null;
+  initialCanvasBlobUrl?: string | null;
 }
 
 export function EditorWorkspace({
   projects,
   activeProjectId,
+  initialCanvasBlobUrl = null,
 }: EditorWorkspaceProps) {
   const router = useRouter();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -35,24 +38,18 @@ export function EditorWorkspace({
         projectName={dialogs.activeProject?.name ?? null}
       />
       <main
-        className="relative flex min-h-0 flex-1 items-center justify-center overflow-hidden bg-background px-6"
+        className={`relative flex min-h-0 flex-1 overflow-hidden bg-background ${
+          dialogs.activeProject ? "" : "items-center justify-center px-6"
+        }`}
         aria-label="Editor workspace"
       >
         {dialogs.activeProject ? (
-          <div className="max-w-lg text-center">
-            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl border border-white/[0.08] bg-[var(--panel)]">
-              <FolderOpen
-                aria-hidden="true"
-                className="h-6 w-6 text-primary"
-              />
-            </div>
-            <h2 className="text-xl font-semibold tracking-tight">
-              {dialogs.activeProject.name}
-            </h2>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Connecting to live session space...
-            </p>
-          </div>
+          <WorkspaceCanvas
+            key={dialogs.activeProject.id}
+            projectId={dialogs.activeProject.id}
+            projectName={dialogs.activeProject.name}
+            initialCanvasBlobUrl={initialCanvasBlobUrl}
+          />
         ) : (
           <div className="max-w-lg text-center">
             <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl border border-white/[0.08] bg-[var(--panel)]">

@@ -8,7 +8,7 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Goal
 
-- Feature 08: Liveblocks Workspace Shell — Completed
+- Feature 11: Node UX Polish — IN_PROGRESS
 
 ## Completed
 
@@ -18,15 +18,19 @@ Update this file whenever the current phase, active feature, or implementation s
 - Phase 05: Prisma & PostgreSQL Database Layer Initialization.
 - Feature 07: Wire Editor Home — hydrate the editor from Prisma and connect project creation, rename, and deletion to the authenticated project APIs.
 - Feature 08: Liveblocks Workspace Shell — enforce project membership before issuing room tokens and mount the protected Liveblocks workspace viewport with client-side Liveblocks providers.
+- Phase 11-B: Canvas Polish — stabilize node creation, circle alignment, and mouse deletion controls.
 
 ## In Progress
 
+- Feature 09: Interactive Architecture Canvas — add a client-only React Flow workspace canvas with locally managed nodes and edges.
+- Feature 10: Canvas Data State Serialization & Database Persistence — IN_PROGRESS.
+- Feature 11: Node UX Polish — replace archetype-based node creation with generic customizable blocks.
 - Feature 03: Authentication — integrate Clerk provider, route protection, themed dark auth screens, and navbar user account injection.
 - Feature 06: Project CRUD Backend REST API — implement authenticated Prisma-backed collection and resource handlers. Status: IN_PROGRESS.
 
 ## Next Up
 
-- Add the next planned feature unit here.
+- Plan the next feature unit.
 
 ## Open Questions
 
@@ -44,3 +48,5 @@ Update this file whenever the current phase, active feature, or implementation s
 - Feature 07 server-hydrates owner and verified-email collaborator projects by most recent update; editor project actions use the UUID API routes and expose mutation loading/errors. TypeScript compilation and targeted ESLint pass.
 - Feature 08 validates project IDs before database access, protects project workspaces and Liveblocks room authorization with Clerk ownership/verified-email collaborator checks, and mounts the room-scoped workspace shell. TypeScript compilation and targeted ESLint pass.
 - Feature 08 Liveblocks providers and ClientSideSuspense run in a client component; the server-rendered project page retains Clerk and Prisma access checks. `npm run build` passes.
+- Feature 09 canvas mutations are client-only; no persistence or Liveblocks synchronization is added in this unit.
+- Feature 10 adds owner-authorized canvas persistence and refresh hydration; no Liveblocks room manager or custom double-click modal overlay forms are included.

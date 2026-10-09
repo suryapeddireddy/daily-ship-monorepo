@@ -44,7 +44,7 @@ export default async function ProjectWorkspacePage({
   const [project, projects] = await Promise.all([
     prisma.project.findUnique({
       where: { id: projectId },
-      select: { id: true },
+      select: { id: true, canvasBlobUrl: true },
     }),
     getProjectsForUser(userId, emailAddresses),
   ]);
@@ -59,7 +59,11 @@ export default async function ProjectWorkspacePage({
 
   return (
     <EditorProviders roomId={projectId}>
-      <EditorWorkspace projects={projects} activeProjectId={projectId} />
+      <EditorWorkspace
+        projects={projects}
+        activeProjectId={projectId}
+        initialCanvasBlobUrl={project.canvasBlobUrl}
+      />
     </EditorProviders>
   );
 }
