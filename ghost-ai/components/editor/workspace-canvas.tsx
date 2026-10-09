@@ -31,7 +31,6 @@ import {
 } from "@/hooks/useCanvasSync";
 import {
   NODE_COLORS,
-  NODE_SHAPES,
   type NodeElementProperties,
   type NodeLayoutType,
 } from "@/types/canvas";
@@ -96,6 +95,8 @@ function CanvasBlock({
 const nodeTypes: NodeTypes = {
   block: CanvasBlock,
 };
+
+const spawnNodeShapes = ["rectangle", "circle", "rounded-square"] as const;
 
 function getNodeLayoutStyle(layoutType: NodeLayoutType): CSSProperties {
   switch (layoutType) {
@@ -218,8 +219,9 @@ function CanvasContents({
       }
 
       const layoutType =
-        NODE_SHAPES[Math.floor(Math.random() * NODE_SHAPES.length)] ??
-        "rectangle";
+        spawnNodeShapes[
+          Math.floor(Math.random() * spawnNodeShapes.length)
+        ] ?? "rectangle";
       const position = screenToFlowPosition({
         x: bounds.left + bounds.width / 2,
         y: bounds.top + bounds.height / 2,

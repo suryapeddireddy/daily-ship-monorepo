@@ -75,7 +75,7 @@ function normalizeCanvasNode(value: unknown): CanvasNode | null {
     }
     const layoutType =
       NODE_SHAPES.find((shape) => shape === rawProperties.layoutType) ??
-      (rawProperties.layoutType === "circle" ? "circle" : "rectangle");
+      "rectangle";
     elementProperties.backgroundColor = color.background;
     elementProperties.textColor = color.text;
     elementProperties.layoutType = layoutType;
@@ -145,6 +145,12 @@ export function useCanvasSync(
   nodes: Node[],
   edges: Edge[],
 ): { status: CanvasSyncStatus; error: string | null } {
+  const pendingSave = useRef<{
+    projectId: string;
+    nodes: Node[];
+    edges: Edge[];
+    timeoutId: ReturnType<typeof setTimeout>;
+  } | null>(null);
   const previousState = useRef({ nodes, edges });
   const latestSave = useRef(0);
   const saveQueue = useRef<Promise<void>>(Promise.resolve());
@@ -165,6 +171,7 @@ export function useCanvasSync(
     setError(null);
 
     const timeoutId = setTimeout(() => {
+      pendingSave.current = null;
       const save = saveQueue.current.then(async () => {
         const response = await fetch(
           `/api/projects/${encodeURIComponent(projectId)}`,
@@ -195,9 +202,40 @@ export function useCanvasSync(
         }
       });
     }, 800);
+    pendingSave.current = { projectId, nodes, edges, timeoutId };
 
     return () => clearTimeout(timeoutId);
   }, [edges, nodes, projectId]);
+
+  useEffect(
+    () => () => {
+      const pending = pendingSave.current;
+      if (!pending) {
+        return;
+      }
+
+      clearTimeout(pending.timeoutId);
+      pendingSave.current = null;
+      void fetch(`/api/projects/${encodeURIComponent(pending.projectId)}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          canvasNodes: pending.nodes,
+          canvasEdges: pending.edges,
+        }),
+        keepalive: true,
+      })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error(`Canvas sync failed (${response.status}).`);
+          }
+        })
+        .catch((caughtError: unknown) => {
+          console.error("Canvas sync failed during unmount.", caughtError);
+        });
+    },
+    [],
+  );
 
   return { status, error };
 }
