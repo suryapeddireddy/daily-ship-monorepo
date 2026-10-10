@@ -1,20 +1,30 @@
 "use client";
 
 import { UserButton } from "@clerk/nextjs";
-import { Menu, Share2 } from "lucide-react";
+import { Menu } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import {
+  WorkspaceCollaborationControls,
+  type ProjectCollaboratorSummary,
+} from "@/components/editor/workspace-collaboration-controls";
 
 interface EditorNavbarProps {
   isSidebarOpen: boolean;
   onMenuClick: () => void;
   projectName: string | null;
+  projectId: string | null;
+  isProjectOwner: boolean;
+  collaborators: ProjectCollaboratorSummary[];
 }
 
 export function EditorNavbar({
   isSidebarOpen,
   onMenuClick,
   projectName,
+  projectId,
+  isProjectOwner,
+  collaborators,
 }: EditorNavbarProps) {
   return (
     <header className="relative z-40 flex h-14 shrink-0 items-center justify-between border-b border-[var(--border)] bg-[var(--panel)] px-4">
@@ -38,10 +48,14 @@ export function EditorNavbar({
       </div>
 
       <div className="flex flex-1 items-center justify-end gap-2">
-        <Button type="button" variant="outline" size="sm" disabled>
-          <Share2 aria-hidden="true" />
-          Share
-        </Button>
+        {projectId ? (
+          <WorkspaceCollaborationControls
+            key={projectId}
+            projectId={projectId}
+            isProjectOwner={isProjectOwner}
+            collaborators={collaborators}
+          />
+        ) : null}
         <UserButton
           appearance={{
             elements: {

@@ -10,22 +10,27 @@ import {
   ReactFlow,
   ReactFlowProvider,
   addEdge,
+  applyNodeChanges,
   useEdgesState,
   useNodesState,
   useReactFlow,
   type Connection,
   type Edge,
+  type NodeChange,
   type NodeProps,
   type NodeMouseHandler,
   type NodeTypes,
 } from "@xyflow/react";
+import { useOthers, useUpdateMyPresence } from "@liveblocks/react/suspense";
 import { Boxes, Plus, Settings } from "lucide-react";
 import { useCallback, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
+import type { PointerEvent as ReactPointerEvent } from "react";
 import { PropertyPanel } from "@/components/editor/property-panel";
 import {
   parseCanvasSnapshot,
   useCanvasSync,
+  useLiveCanvasSync,
   type CanvasNode,
   type CanvasNodeData,
 } from "@/hooks/useCanvasSync";
@@ -38,13 +43,11 @@ import {
 interface WorkspaceCanvasProps {
   projectId: string;
   projectName: string;
+  isProjectOwner: boolean;
   initialCanvasBlobUrl: string | null;
 }
 
-function CanvasBlock({
-  data,
-  selected,
-}: NodeProps<CanvasNode>) {
+function CanvasBlock({ data, selected }: NodeProps<CanvasNode>) {
   const elementProperties = data.elementProperties ?? {
     backgroundColor: NODE_COLORS[0].background,
     textColor: NODE_COLORS[0].text,
@@ -92,6 +95,47 @@ function CanvasBlock({
   );
 }
 
+function LiveCursors() {
+  const others = useOthers();
+
+  return (
+    <div
+      className="pointer-events-none absolute inset-0 z-20 overflow-hidden"
+      aria-hidden="true"
+    >
+      {others.map((other) => {
+        const cursor = other.presence.cursor;
+        if (!cursor) {
+          return null;
+        }
+
+        return (
+          <div
+            key={other.connectionId}
+            className="absolute flex items-start gap-1.5"
+            style={{
+              left: cursor.x,
+              top: cursor.y,
+              color: other.info.color,
+            }}
+          >
+            <svg
+              viewBox="0 0 16 20"
+              className="h-5 w-4 shrink-0 drop-shadow"
+              fill="currentColor"
+            >
+              <path d="M1 1v15l4-4 3 6 3-1.5-3-5.5h6L1 1Z" />
+            </svg>
+            <span className="rounded-md bg-surface px-2 py-0.5 text-xs font-medium text-copy-primary shadow-lg">
+              {other.info.name}
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 const nodeTypes: NodeTypes = {
   block: CanvasBlock,
 };
@@ -123,6 +167,7 @@ function getNodeLayoutStyle(layoutType: NodeLayoutType): CSSProperties {
 function CanvasContents({
   projectId,
   projectName,
+  isProjectOwner,
   initialCanvasBlobUrl,
 }: WorkspaceCanvasProps) {
   const canvasRef = useRef<HTMLDivElement>(null);
@@ -130,15 +175,41 @@ function CanvasContents({
     () => parseCanvasSnapshot(initialCanvasBlobUrl),
     [initialCanvasBlobUrl],
   );
-  const [nodes, setNodes, onNodesChange] =
+  const [nodes, setNodes] =
     useNodesState<CanvasNode>(initialCanvas?.canvasNodes ?? []);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>(
     initialCanvas?.canvasEdges ?? [],
   );
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const { screenToFlowPosition, deleteElements } = useReactFlow<CanvasNode, Edge>();
-  const sync = useCanvasSync(projectId, nodes, edges);
+  const sync = useCanvasSync(projectId, nodes, edges, isProjectOwner);
+  useLiveCanvasSync(nodes, setNodes, edges, setEdges);
+  const updateMyPresence = useUpdateMyPresence();
   const selectedNode = nodes.find((node) => node.id === selectedNodeId) ?? null;
+  const onNodesChange = useCallback(
+    (changes: NodeChange<CanvasNode>[]) => {
+      setNodes((currentNodes) => applyNodeChanges(changes, currentNodes));
+    },
+    [setNodes],
+  );
+  const handlePointerMove = useCallback(
+    (event: ReactPointerEvent<HTMLElement>) => {
+      const bounds = canvasRef.current?.getBoundingClientRect();
+      if (bounds) {
+        updateMyPresence({
+          cursor: {
+            x: event.clientX - bounds.left,
+            y: event.clientY - bounds.top,
+          },
+        });
+      }
+    },
+    [updateMyPresence],
+  );
+  const handlePointerLeave = useCallback(
+    () => updateMyPresence({ cursor: null }),
+    [updateMyPresence],
+  );
 
   const handleNodeClick: NodeMouseHandler<CanvasNode> = useCallback(
     (event, node) => {
@@ -262,6 +333,8 @@ function CanvasContents({
       ref={canvasRef}
       className="relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden"
       aria-label={`${projectName} architecture canvas`}
+      onPointerMove={handlePointerMove}
+      onPointerLeave={handlePointerLeave}
     >
       <div className="pointer-events-none absolute left-5 top-5 z-10">
         <div className="flex items-center gap-2">
@@ -329,6 +402,8 @@ function CanvasContents({
           }}
         />
       </ReactFlow>
+
+      <LiveCursors />
 
       <PropertyPanel
         node={selectedNode}

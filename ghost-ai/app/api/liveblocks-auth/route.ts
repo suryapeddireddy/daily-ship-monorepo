@@ -3,6 +3,16 @@ import { Liveblocks } from "@liveblocks/node";
 
 import { isProjectId } from "@/lib/projects";
 import { prisma } from "@/lib/prisma";
+import { NODE_COLORS } from "@/types/canvas";
+
+function getPresenceColor(identity: string): string {
+  let hash = 0;
+  for (const character of identity) {
+    hash = (hash * 31 + character.charCodeAt(0)) >>> 0;
+  }
+
+  return NODE_COLORS[hash % NODE_COLORS.length].text;
+}
 
 export async function POST(request: Request) {
   const { userId } = await auth();
@@ -32,31 +42,24 @@ export async function POST(request: Request) {
       .filter(({ verification }) => verification?.status === "verified")
       .map(({ emailAddress }) => emailAddress) ?? [];
 
-  const project = await prisma.project.findFirst({
-    where: {
-      id: room,
-      OR: [
-        { ownerId: userId },
-        ...(verifiedEmails.length > 0
-          ? [
-              {
-                collaborators: {
-                  some: {
-                    email: {
-                      in: verifiedEmails,
-                      mode: "insensitive" as const,
-                    },
-                  },
-                },
-              },
-            ]
-          : []),
-      ],
+  const project = await prisma.project.findUnique({
+    where: { id: room },
+    select: {
+      ownerId: true,
+      collaborators: {
+        where: {
+          email: { in: verifiedEmails, mode: "insensitive" },
+        },
+        select: { id: true, role: true },
+        take: 1,
+      },
     },
-    select: { id: true },
   });
 
-  if (!project) {
+  if (
+    !project ||
+    (project.ownerId !== userId && project.collaborators.length === 0)
+  ) {
     return Response.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -69,8 +72,30 @@ export async function POST(request: Request) {
   }
 
   const liveblocks = new Liveblocks({ secret });
-  const session = liveblocks.prepareSession(userId);
-  session.allow(room, session.FULL_ACCESS);
+  const identity = user?.primaryEmailAddress?.emailAddress ?? userId;
+  const name =
+    [user?.firstName, user?.lastName]
+      .filter((part): part is string => Boolean(part))
+      .join(" ") ||
+    user?.username ||
+    identity;
+  const session = liveblocks.prepareSession(userId, {
+    userInfo: {
+      name,
+      color: getPresenceColor(identity),
+      ...(project.collaborators[0]
+        ? { collaboratorId: project.collaborators[0].id }
+        : {}),
+      ...(user?.imageUrl ? { avatar: user.imageUrl } : {}),
+    },
+  });
+  const role = project.collaborators[0]?.role;
+  session.allow(
+    room,
+    project.ownerId === userId || role === "ADMIN"
+      ? session.FULL_ACCESS
+      : session.READ_ACCESS,
+  );
 
   const { status, body } = await session.authorize();
   return new Response(body, { status });

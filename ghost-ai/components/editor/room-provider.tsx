@@ -4,30 +4,38 @@ import type { ReactNode } from "react";
 import {
   ClientSideSuspense,
   LiveblocksProvider,
-  RoomProvider,
+  RoomProvider as LiveblocksRoomProvider,
 } from "@liveblocks/react/suspense";
 
-interface EditorProvidersProps {
+interface RoomProviderProps {
   children: ReactNode;
-  roomId: string;
+  projectId: string;
 }
 
-export function EditorProviders({ children, roomId }: EditorProvidersProps) {
+export function RoomProvider({ children, projectId }: RoomProviderProps) {
   return (
     <LiveblocksProvider authEndpoint="/api/liveblocks-auth">
-      <RoomProvider id={roomId}>
+      <LiveblocksRoomProvider
+        id={projectId}
+        initialPresence={{ cursor: null }}
+        initialStorage={{
+          canvasNodes: [],
+          canvasEdges: [],
+          initialized: false,
+        }}
+      >
         <ClientSideSuspense
           fallback={
             <main className="flex min-h-screen items-center justify-center bg-background px-6">
               <p className="text-sm text-muted-foreground">
-                Connecting to live session space...
+                Connecting to Liveblocks session space...
               </p>
             </main>
           }
         >
           {() => children}
         </ClientSideSuspense>
-      </RoomProvider>
+      </LiveblocksRoomProvider>
     </LiveblocksProvider>
   );
 }

@@ -18,6 +18,7 @@ Update this file whenever the current phase, active feature, or implementation s
 - Phase 05: Prisma & PostgreSQL Database Layer Initialization.
 - Feature 07: Wire Editor Home — hydrate the editor from Prisma and connect project creation, rename, and deletion to the authenticated project APIs.
 - Feature 08: Liveblocks Workspace Shell — enforce project membership before issuing room tokens and mount the protected Liveblocks workspace viewport with client-side Liveblocks providers.
+- Feature 12: Liveblocks Multiplayer — synchronize project canvas state and ephemeral presence across collaborators.
 - Phase 11-B: Canvas Polish — stabilize node creation, circle alignment, and mouse deletion controls.
 
 ## In Progress
@@ -27,6 +28,8 @@ Update this file whenever the current phase, active feature, or implementation s
 - Feature 11: Node UX Polish — replace archetype-based node creation with generic customizable blocks.
 - Feature 03: Authentication — integrate Clerk provider, route protection, themed dark auth screens, and navbar user account injection.
 - Feature 06: Project CRUD Backend REST API — implement authenticated Prisma-backed collection and resource handlers. Status: IN_PROGRESS.
+- Feature 12-B Backend Access API — implement secure project invite-token and collaborator eviction endpoints. Status: IN_PROGRESS.
+- Phase 12-B Workspace Authority UI — implement project sharing controls, live active-user avatars, and owner-only collaborator actions. Status: IN_PROGRESS.
 
 ## Next Up
 
@@ -50,3 +53,5 @@ Update this file whenever the current phase, active feature, or implementation s
 - Feature 08 Liveblocks providers and ClientSideSuspense run in a client component; the server-rendered project page retains Clerk and Prisma access checks. `npm run build` passes.
 - Feature 09 canvas mutations are client-only; no persistence or Liveblocks synchronization is added in this unit.
 - Feature 10 adds owner-authorized canvas persistence and refresh hydration; no Liveblocks room manager or custom double-click modal overlay forms are included.
+- Feature 12 adds project-scoped Liveblocks storage synchronization for canvas nodes/edges, ephemeral collaborator cursors, Clerk-derived user metadata, and owner-only snapshot persistence. ESLint, TypeScript, and production build pass.
+- Phase 12-B adds an owner-only share popover, live Liveblocks collaborator avatars, owner role/kick controls, and persisted ADMIN/VIEWER access applied when Liveblocks sessions are authorized. Prisma validation, targeted ESLint, TypeScript, and production build pass.

@@ -1,11 +1,14 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import type { Dispatch, SetStateAction } from "react";
 import type { Edge, Node } from "@xyflow/react";
+import { useMutation, useStorage } from "@liveblocks/react/suspense";
 import {
   NODE_COLORS,
   NODE_SHAPES,
   type NodeElementProperties,
+  type NodeLayoutType,
 } from "@/types/canvas";
 
 export interface CanvasNodeData extends Record<string, unknown> {
@@ -19,6 +22,29 @@ export interface CanvasSnapshot {
   canvasNodes: CanvasNode[];
   canvasEdges: Edge[];
 }
+
+export type SharedCanvasNode = {
+  id: string;
+  type: "block";
+  position: { x: number; y: number };
+  data: {
+    name: string;
+    elementProperties: {
+      backgroundColor: string;
+      textColor: string;
+      layoutType: NodeLayoutType;
+    };
+  };
+};
+
+export type SharedCanvasEdge = {
+  id: string;
+  source: string;
+  target: string;
+  sourceHandle: string | null;
+  targetHandle: string | null;
+  type: string;
+};
 
 type CanvasSyncStatus = "saved" | "saving" | "error";
 
@@ -140,10 +166,185 @@ export function parseCanvasSnapshot(value: string | null): CanvasSnapshot | null
   }
 }
 
+function toSharedCanvasNode(node: CanvasNode): SharedCanvasNode {
+  const elementProperties = node.data.elementProperties ?? {
+    backgroundColor: NODE_COLORS[0].background,
+    textColor: NODE_COLORS[0].text,
+    layoutType: "rectangle" as const,
+  };
+
+  return {
+    id: node.id,
+    type: "block",
+    position: { x: node.position.x, y: node.position.y },
+    data: {
+      name: node.data.name,
+      elementProperties: {
+        backgroundColor: elementProperties.backgroundColor,
+        textColor: elementProperties.textColor,
+        layoutType: elementProperties.layoutType,
+      },
+    },
+  };
+}
+
+function toSharedCanvasEdge(edge: Edge): SharedCanvasEdge {
+  return {
+    id: edge.id,
+    source: edge.source,
+    target: edge.target,
+    sourceHandle: edge.sourceHandle ?? null,
+    targetHandle: edge.targetHandle ?? null,
+    type: edge.type ?? "smoothstep",
+  };
+}
+
+function getCanvasSignature(nodes: CanvasNode[], edges: Edge[]): string {
+  return JSON.stringify({
+    canvasNodes: nodes.map(toSharedCanvasNode),
+    canvasEdges: edges.map(toSharedCanvasEdge),
+  });
+}
+
+function areNodesInitialized(nodes: CanvasNode[]): boolean {
+  return nodes.every(
+    (node) => node.measured !== undefined || node.width !== undefined,
+  );
+}
+
+export function useLiveCanvasSync(
+  nodes: CanvasNode[],
+  setNodes: Dispatch<SetStateAction<CanvasNode[]>>,
+  edges: Edge[],
+  setEdges: Dispatch<SetStateAction<Edge[]>>,
+): void {
+  const sharedNodes = useStorage((root) => root.canvasNodes);
+  const sharedEdges = useStorage((root) => root.canvasEdges);
+  const initialized = useStorage((root) => root.initialized);
+  const publishCanvas = useMutation(
+    (
+      { storage },
+      canvasNodes: SharedCanvasNode[],
+      canvasEdges: SharedCanvasEdge[],
+    ) => {
+      storage.set("canvasNodes", canvasNodes);
+      storage.set("canvasEdges", canvasEdges);
+      storage.set("initialized", true);
+    },
+    [],
+  );
+  const initializeCanvas = useMutation(
+    (
+      { storage },
+      canvasNodes: SharedCanvasNode[],
+      canvasEdges: SharedCanvasEdge[],
+    ) => {
+      if (storage.get("initialized")) {
+        return;
+      }
+      storage.set("canvasNodes", canvasNodes);
+      storage.set("canvasEdges", canvasEdges);
+      storage.set("initialized", true);
+    },
+    [],
+  );
+
+  const currentLocalState = useRef({ nodes, edges });
+  const lastLocalSignature = useRef(getCanvasSignature(nodes, edges));
+  const pendingRemoteSignature = useRef<string | null>(null);
+
+  useEffect(() => {
+    currentLocalState.current = { nodes, edges };
+  }, [edges, nodes]);
+
+  useEffect(() => {
+    if (initialized) {
+      return;
+    }
+
+    const { nodes: currentNodes, edges: currentEdges } =
+      currentLocalState.current;
+    if (!areNodesInitialized(currentNodes)) {
+      return;
+    }
+
+    initializeCanvas(
+      currentNodes.map(toSharedCanvasNode),
+      currentEdges.map(toSharedCanvasEdge),
+    );
+  }, [edges, initializeCanvas, initialized, nodes]);
+
+  useEffect(() => {
+    if (!initialized) {
+      return;
+    }
+
+    const snapshot = parseCanvasSnapshot(
+      JSON.stringify({ canvasNodes: sharedNodes, canvasEdges: sharedEdges }),
+    );
+    if (!snapshot) {
+      console.error("Liveblocks returned an invalid canvas snapshot.");
+      return;
+    }
+
+    const remoteSignature = getCanvasSignature(
+      snapshot.canvasNodes,
+      snapshot.canvasEdges,
+    );
+    const localState = currentLocalState.current;
+    const localSignature = getCanvasSignature(
+      localState.nodes,
+      localState.edges,
+    );
+    if (remoteSignature === localSignature) {
+      pendingRemoteSignature.current = null;
+      lastLocalSignature.current = localSignature;
+      return;
+    }
+
+    pendingRemoteSignature.current = remoteSignature;
+    setNodes(snapshot.canvasNodes);
+    setEdges(snapshot.canvasEdges);
+  }, [initialized, setEdges, setNodes, sharedEdges, sharedNodes]);
+
+  useEffect(() => {
+    const localSignature = getCanvasSignature(nodes, edges);
+
+    if (!initialized) {
+      lastLocalSignature.current = localSignature;
+      return;
+    }
+
+    const pendingSignature = pendingRemoteSignature.current;
+    if (pendingSignature !== null) {
+      if (localSignature === pendingSignature) {
+        pendingRemoteSignature.current = null;
+        lastLocalSignature.current = localSignature;
+      }
+      return;
+    }
+
+    if (localSignature === lastLocalSignature.current) {
+      return;
+    }
+
+    if (!areNodesInitialized(nodes)) {
+      return;
+    }
+
+    lastLocalSignature.current = localSignature;
+    publishCanvas(
+      nodes.map(toSharedCanvasNode),
+      edges.map(toSharedCanvasEdge),
+    );
+  }, [edges, initialized, nodes, publishCanvas]);
+}
+
 export function useCanvasSync(
   projectId: string,
   nodes: Node[],
   edges: Edge[],
+  canPersist: boolean,
 ): { status: CanvasSyncStatus; error: string | null } {
   const pendingSave = useRef<{
     projectId: string;
@@ -158,6 +359,10 @@ export function useCanvasSync(
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!canPersist) {
+      return;
+    }
+
     if (
       previousState.current.nodes === nodes &&
       previousState.current.edges === edges
@@ -205,7 +410,7 @@ export function useCanvasSync(
     pendingSave.current = { projectId, nodes, edges, timeoutId };
 
     return () => clearTimeout(timeoutId);
-  }, [edges, nodes, projectId]);
+  }, [canPersist, edges, nodes, projectId]);
 
   useEffect(
     () => () => {

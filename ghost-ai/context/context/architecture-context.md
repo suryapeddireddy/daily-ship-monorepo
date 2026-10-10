@@ -32,10 +32,12 @@
 ## Auth and Collaboration Model
 
 - Every project has a single owner (Clerk user ID).
-- Projects can include additional collaborators.
+- Projects can include additional collaborators with `ADMIN` (edit) or `VIEWER` (read-only) access, managed by the owner.
 - Only authenticated users can access protected routes.
 - Only the owner or a collaborator can mutate project resources.
-- Liveblocks room tokens are issued only after verifying project membership.
+- Liveblocks room tokens are issued only after verifying project membership and grant access according to the collaborator role.
+- Each project uses a Liveblocks room keyed by its project ID; room storage synchronizes canvas nodes and edges, while cursor coordinates remain ephemeral presence.
+- Only project owners persist canvas snapshots through the project API; collaborators synchronize edits through Liveblocks.
 
 ## Starter System Designs
 

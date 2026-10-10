@@ -10,17 +10,26 @@ import { ProjectSidebar } from "@/components/editor/project-sidebar";
 import { WorkspaceCanvas } from "@/components/editor/workspace-canvas";
 import { useProjectDialogs } from "@/hooks/use-project-dialogs";
 import type { ProjectSummary } from "@/lib/projects";
+import type { ProjectCollaboratorRole } from "@prisma/client";
+
+interface ProjectCollaboratorSummary {
+  id: string;
+  email: string;
+  role: ProjectCollaboratorRole;
+}
 
 interface EditorWorkspaceProps {
   projects: ProjectSummary[];
   activeProjectId: string | null;
   initialCanvasBlobUrl?: string | null;
+  collaborators?: ProjectCollaboratorSummary[];
 }
 
 export function EditorWorkspace({
   projects,
   activeProjectId,
   initialCanvasBlobUrl = null,
+  collaborators = [],
 }: EditorWorkspaceProps) {
   const router = useRouter();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -36,6 +45,9 @@ export function EditorWorkspace({
         isSidebarOpen={isSidebarOpen}
         onMenuClick={toggleSidebar}
         projectName={dialogs.activeProject?.name ?? null}
+        projectId={activeProjectId}
+        isProjectOwner={dialogs.activeProject?.isOwner ?? false}
+        collaborators={collaborators}
       />
       <main
         className={`relative flex min-h-0 flex-1 overflow-hidden bg-background ${
@@ -48,6 +60,7 @@ export function EditorWorkspace({
             key={dialogs.activeProject.id}
             projectId={dialogs.activeProject.id}
             projectName={dialogs.activeProject.name}
+            isProjectOwner={dialogs.activeProject.isOwner}
             initialCanvasBlobUrl={initialCanvasBlobUrl}
           />
         ) : (
