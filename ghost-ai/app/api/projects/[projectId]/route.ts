@@ -64,7 +64,8 @@ function isCanvasEdge(value: unknown): value is Record<string, unknown> {
     typeof value.id === "string" &&
     value.id.length > 0 &&
     typeof value.source === "string" &&
-    typeof value.target === "string"
+    typeof value.target === "string" &&
+    (value.animated === undefined || typeof value.animated === "boolean")
   );
 }
 

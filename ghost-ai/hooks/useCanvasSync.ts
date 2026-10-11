@@ -44,6 +44,7 @@ export type SharedCanvasEdge = {
   sourceHandle: string | null;
   targetHandle: string | null;
   type: string;
+  animated: boolean;
 };
 
 type CanvasSyncStatus = "saved" | "saving" | "error";
@@ -127,7 +128,8 @@ function isCanvasEdge(value: unknown): value is Edge {
     isRecord(value) &&
     typeof value.id === "string" &&
     typeof value.source === "string" &&
-    typeof value.target === "string"
+    typeof value.target === "string" &&
+    (value.animated === undefined || typeof value.animated === "boolean")
   );
 }
 
@@ -196,6 +198,7 @@ function toSharedCanvasEdge(edge: Edge): SharedCanvasEdge {
     sourceHandle: edge.sourceHandle ?? null,
     targetHandle: edge.targetHandle ?? null,
     type: edge.type ?? "smoothstep",
+    animated: edge.animated ?? false,
   };
 }
 

@@ -54,6 +54,7 @@
 - Input: user prompt, project context, and current canvas state.
 - Execution: durable background task via Trigger.dev.
 - Output: structured node and edge updates written into the shared Liveblocks room.
+- Feature 13 is an explicit short-lived exception: its authenticated Gemini POST handler returns structured nodes and edges directly to the editor, which appends them to the shared canvas. Longer-running AI generation remains a Trigger.dev responsibility.
 
 ### Spec Generation
 
@@ -63,7 +64,7 @@
 
 ## Invariants
 
-1. Request handlers do not run long-lived AI work — that belongs in background tasks.
+1. Long-running AI work belongs in background tasks; the authenticated, short-lived Feature 13 Gemini request/response flow is the documented exception.
 2. Metadata and large generated artifacts are stored in separate layers.
 3. Auth and ownership are enforced at every mutation boundary.
 4. Client components are used only where browser interactivity or real-time state requires them.

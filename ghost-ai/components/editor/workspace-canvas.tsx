@@ -27,6 +27,7 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
 import { PropertyPanel } from "@/components/editor/property-panel";
+import { PromptBar } from "@/components/editor/prompt-bar";
 import {
   parseCanvasSnapshot,
   useCanvasSync,
@@ -274,7 +275,10 @@ function CanvasContents({
   const onConnect = useCallback(
     (connection: Connection) => {
       setEdges((currentEdges) =>
-        addEdge({ ...connection, type: "smoothstep" }, currentEdges),
+        addEdge(
+          { ...connection, animated: true, type: "smoothstep" },
+          currentEdges,
+        ),
       );
     },
     [setEdges],
@@ -402,6 +406,14 @@ function CanvasContents({
           }}
         />
       </ReactFlow>
+
+      <PromptBar
+        projectId={projectId}
+        nodes={nodes}
+        edges={edges}
+        setNodes={setNodes}
+        setEdges={setEdges}
+      />
 
       <LiveCursors />
 
