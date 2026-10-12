@@ -43,7 +43,7 @@ export function ProjectDialogSheets({ dialogs }: ProjectDialogSheetsProps) {
       }}
     >
       {activeDialog === "create" && (
-        <DialogContent className="rounded-3xl border border-white/[0.08] bg-[var(--panel)] p-6 text-[var(--text-primary)] sm:max-w-md">
+        <DialogContent className="rounded-3xl p-6 sm:max-w-md">
           <DialogHeader className="gap-2">
             <DialogTitle className="text-lg">Create a project</DialogTitle>
             <DialogDescription>
@@ -67,6 +67,7 @@ export function ProjectDialogSheets({ dialogs }: ProjectDialogSheetsProps) {
               <Input
                 id="create-project-name"
                 autoFocus
+                className="h-10 bg-[var(--background)] px-3 text-sm text-[var(--text-primary)]"
                 value={projectNameInput}
                 onChange={(event) => updateProjectNameInput(event.target.value)}
                 placeholder="e.g. Payments Platform"
@@ -116,7 +117,7 @@ export function ProjectDialogSheets({ dialogs }: ProjectDialogSheetsProps) {
       )}
 
       {activeDialog === "rename" && focusedProject && (
-        <DialogContent className="rounded-3xl border border-white/[0.08] bg-[var(--panel)] p-6 text-[var(--text-primary)] sm:max-w-md">
+        <DialogContent className="rounded-3xl p-6 sm:max-w-md">
           <DialogHeader className="gap-2">
             <DialogTitle className="text-lg">Rename project</DialogTitle>
             <DialogDescription>
@@ -140,6 +141,7 @@ export function ProjectDialogSheets({ dialogs }: ProjectDialogSheetsProps) {
               <Input
                 id="rename-project-name"
                 autoFocus
+                className="h-10 bg-[var(--background)] px-3 text-sm text-[var(--text-primary)]"
                 value={projectNameInput}
                 onChange={(event) => updateProjectNameInput(event.target.value)}
                 aria-invalid={Boolean(formError)}
@@ -176,7 +178,7 @@ export function ProjectDialogSheets({ dialogs }: ProjectDialogSheetsProps) {
       )}
 
       {activeDialog === "delete" && focusedProject && (
-        <DialogContent className="rounded-3xl border border-white/[0.08] bg-[var(--panel)] p-6 text-[var(--text-primary)] sm:max-w-md">
+        <DialogContent className="rounded-3xl p-6 sm:max-w-md">
           <DialogHeader className="gap-2">
             <DialogTitle className="text-lg">Delete project?</DialogTitle>
             <DialogDescription>

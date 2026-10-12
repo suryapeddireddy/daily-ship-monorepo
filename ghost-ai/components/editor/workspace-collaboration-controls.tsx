@@ -195,7 +195,7 @@ export function WorkspaceCollaborationControls({
         {shareIsOpen && isProjectOwner ? (
           <section
             aria-label="Share project"
-            className="absolute right-0 top-full z-50 mt-2 w-72 rounded-xl border border-[var(--border)] bg-[var(--panel)] p-4 text-[var(--text-primary)] shadow-xl"
+            className="absolute right-0 top-full z-50 mt-2 w-72 rounded-xl border border-white/[0.08] bg-[var(--panel)] p-4 text-[var(--text-primary)] shadow-xl"
           >
             <label
               htmlFor="project-share-permission"
@@ -294,7 +294,7 @@ export function WorkspaceCollaborationControls({
                 {isSelected && collaborator ? (
                   <section
                     aria-label={`Manage ${name}`}
-                    className="absolute right-0 top-full z-50 mt-2 w-56 rounded-xl border border-[var(--border)] bg-[var(--panel)] p-3 text-[var(--text-primary)] shadow-xl"
+                    className="absolute right-0 top-full z-50 mt-2 w-56 rounded-xl border border-white/[0.08] bg-[var(--panel)] p-3 text-[var(--text-primary)] shadow-xl"
                   >
                     <div className="mb-3 flex items-center gap-2">
                       <Shield
@@ -302,7 +302,9 @@ export function WorkspaceCollaborationControls({
                         className="h-4 w-4 text-[var(--accent-focus)]"
                       />
                       <div className="min-w-0">
-                        <p className="truncate text-sm font-medium">{name}</p>
+                        <p className="truncate text-sm font-semibold tracking-tight text-white">
+                          {name}
+                        </p>
                         <p className="truncate text-xs text-[var(--text-secondary)]">
                           {collaborator.email}
                         </p>

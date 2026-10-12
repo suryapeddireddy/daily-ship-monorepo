@@ -52,9 +52,10 @@
 ### Design Generation
 
 - Input: user prompt, project context, and current canvas state.
-- Execution: durable background task via Trigger.dev.
-- Output: structured node and edge updates written into the shared Liveblocks room.
-- Feature 13 is an explicit short-lived exception: its authenticated Gemini POST handler returns structured nodes and edges directly to the editor, which appends them to the shared canvas. Longer-running AI generation remains a Trigger.dev responsibility.
+- Execution: authenticated API validation and Trigger.dev task dispatch; the task generates validated structured Gemini nodes and edges.
+- Output: the authorized editor polls the execution handle, lays out the complete graph through `lib/layout.ts`, hydrates React Flow state, and lets the existing canvas persistence flow save the update.
+- Trigger execution status and output are available only to the initiating user while they retain edit access to the project.
+- Runtime configuration requires `TRIGGER_PROJECT_REF` for the worker config, `TRIGGER_SECRET_KEY` for API dispatch/status retrieval, and `GEMINI_API_KEY` in the Trigger.dev worker environment.
 
 ### Spec Generation
 
@@ -64,7 +65,7 @@
 
 ## Invariants
 
-1. Long-running AI work belongs in background tasks; the authenticated, short-lived Feature 13 Gemini request/response flow is the documented exception.
+1. AI generation runs in Trigger.dev; API handlers only validate, authorize, dispatch, and return or retrieve execution state.
 2. Metadata and large generated artifacts are stored in separate layers.
 3. Auth and ownership are enforced at every mutation boundary.
 4. Client components are used only where browser interactivity or real-time state requires them.

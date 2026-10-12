@@ -24,6 +24,7 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## In Progress
 
+- Phase 14 Trigger.dev Integration — IN_PROGRESS
 - Feature 09: Interactive Architecture Canvas — add a client-only React Flow workspace canvas with locally managed nodes and edges.
 - Feature 10: Canvas Data State Serialization & Database Persistence — IN_PROGRESS.
 - Feature 11: Node UX Polish — replace archetype-based node creation with generic customizable blocks.
@@ -47,9 +48,11 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Session Notes
 
+- Phase 14 dispatches authenticated prompt requests to Trigger.dev, generates strict Gemini JSON in a durable task, and polls authorized execution handles; the editor stops on COMPLETED or SUCCESS, Dagre-layouts the generated graph with the existing canvas, then hydrates React Flow so debounced canvas persistence saves both arrays.
 - Feature 13 now uses the official `@google/genai` SDK with Gemini structured JSON output and validated node/edge hydration.
 - Feature 14 sends the Gemini prompt in the SDK user-content array format while preserving the `responseMimeType`, strict JSON schema, 40-character label cap, and animated edge requirements for structured blueprint generation.
 - Feature 14 updates Gemini's structured node/edge output, preserves animated links through Liveblocks and canvas snapshots, and adds them to the canvas state so the debounced persistence hook saves both arrays together.
+- Feature 14 bounds Gemini requests to 45 seconds and stops editor status polling after 20 seconds, with a visible timeout alert.
 - Feature 13 adds the authenticated Gemini blueprint endpoint and floating prompt bar; generated JSON is validated and appended to the shared canvas. TypeScript, targeted ESLint, and production build pass.
 - Phase 4 dashboard, local project state, and create/rename/delete dialog sheets are implemented. ESLint and TypeScript checks pass.
 - Phase 05 Prisma schema, cached client, and initial PostgreSQL migration are implemented and applied. Prisma validation, generation, migration status, ESLint, and TypeScript checks pass.

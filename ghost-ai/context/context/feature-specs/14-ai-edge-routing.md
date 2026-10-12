@@ -1,19 +1,20 @@
-# Feature Spec 14: Automated AI Edge Routing & Layout Connections
+# Feature Spec 14: Invincible AI Edge Routing via Trigger.dev Background Tasks
 
 ## 1. Goal
-Upgrade the Gemini AI system generation pipeline to parse systemic relationships and automatically establish functional connecting wires (Edges) between custom canvas node shapes upon prompt completion.
+Integrate Trigger.dev to offload the long-running Google Gemini system blueprint generation task into a resilient, timeout-proof background execution worker pipeline.
 
 ## 2. Structural & Architectural Decisions
-- **Relational Link Matrices:** The server-side API generation route must inspect its generated nodes array, establish valid logical pathways (e.g., source node to target node dependencies), and format them into React Flow compliant edge objects (`id`, `source`, `target`, `animated`).
-- **Visual Path Styling:** Enforce a clean, animated dark aesthetic theme for AI connections using smooth curved bezier lines or smart orthogonal layout routing paths to emphasize data streaming flows.
+- **Durable Task Workers:** Shift AI layout generation from synchronous serverless Next.js API endpoints to a durable Trigger.dev background task runner.
+- **Dagre Mechanical Layouts:** Upon task success, pipe the dual-array object layout payload (nodes and edges) directly through the internal Dagre graph layout manager (`lib/layout.ts`) to assign spatial x/y pixel grid coordinates before saving.
 
 ## 3. Implementation Plan
-- **Server API Refactor (`app/api/generate-blueprint/route.ts`):**
-  - Update the Gemini system orchestration prompt. Order the AI agent to explicitly generate an array of connecting relations matching the exact unique node IDs it just constructed.
-- **Frontend Canvas Integration (`components/editor/workspace-canvas.tsx`):**
-  - Ensure the client-side state manager handles receiving both nodes and edges concurrently from the AI payload, triggering your active debounced auto-save hook to commit the complete wiring maps to PostgreSQL seamlessly.
+- **Background Task Framework (`trigger/generate-blueprint.ts`):**
+  - Construct an authentic Trigger.dev task configuration block initialized using `task({...})`.
+  - Wire up the Gemini content generation engine within the run handler block using the production parameters for `gemini-3.8-flash` in JSON mode.
+- **REST Status Handlers (`app/api/generate-blueprint/route.ts`):**
+  - Refactor the API route to serve strictly as a rapid task trigger invocation gate using `@trigger.dev/sdk`.
 
 ## 4. Verification Check Constraints
-- Prompting the AI assistant generates both system blocks and their corresponding connecting lines simultaneously.
-- Connection wires animate smoothly across the screen and can be disconnected or rerouted manually by clicking handles.
-- Code compiles cleanly with zero TypeScript compiler errors.
+- Submitting a prompt immediately returns a running execution handle without triggering 502/504 errors.
+- Background logs on the local task manager dashboard confirm stable token deliveries.
+

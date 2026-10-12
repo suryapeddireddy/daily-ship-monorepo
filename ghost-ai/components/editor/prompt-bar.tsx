@@ -1,10 +1,11 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Dispatch, FormEvent, SetStateAction } from "react";
 import type { Edge } from "@xyflow/react";
 import { LoaderCircle, Send, Sparkles } from "lucide-react";
 import type { CanvasNode } from "@/hooks/useCanvasSync";
+import { getLayoutedElements } from "@/lib/layout";
 import { NODE_SHAPES } from "@/types/canvas";
 
 interface PromptBarProps {
@@ -14,6 +15,9 @@ interface PromptBarProps {
   setNodes: Dispatch<SetStateAction<CanvasNode[]>>;
   setEdges: Dispatch<SetStateAction<Edge[]>>;
 }
+
+const STATUS_POLL_INTERVAL_MS = 1_500;
+const STATUS_POLL_TIMEOUT_MS = 20_000;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -62,6 +66,26 @@ function isCanvasEdge(value: unknown): value is Edge {
   );
 }
 
+function waitForExecutionUpdate(signal: AbortSignal): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const onAbort = () => {
+      window.clearTimeout(timeoutId);
+      signal.removeEventListener("abort", onAbort);
+      reject(new Error("Blueprint status polling timed out."));
+    };
+
+    const timeoutId = window.setTimeout(() => {
+      signal.removeEventListener("abort", onAbort);
+      resolve();
+    }, STATUS_POLL_INTERVAL_MS);
+    signal.addEventListener("abort", onAbort, { once: true });
+
+    if (signal.aborted) {
+      onAbort();
+    }
+  });
+}
+
 export function PromptBar({
   projectId,
   nodes,
@@ -73,6 +97,10 @@ export function PromptBar({
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const generationActive = useRef(false);
+  const canvasRef = useRef({ nodes, edges });
+  useEffect(() => {
+    canvasRef.current = { nodes, edges };
+  }, [edges, nodes]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -106,30 +134,84 @@ export function PromptBar({
           },
         }),
       });
-      const result: unknown = await response.json();
+      const triggerResponse: unknown = await response.json();
 
       if (!response.ok) {
         const message =
-          isRecord(result) && typeof result.error === "string"
-            ? result.error
+          isRecord(triggerResponse) && typeof triggerResponse.error === "string"
+            ? triggerResponse.error
             : "Blueprint generation failed.";
         throw new Error(message);
       }
 
       if (
-        !isRecord(result) ||
-        !Array.isArray(result.nodes) ||
-        !Array.isArray(result.edges) ||
-        !result.nodes.every(isCanvasNode) ||
-        !result.edges.every(isCanvasEdge)
+        !isRecord(triggerResponse) ||
+        typeof triggerResponse.runId !== "string"
       ) {
-        throw new Error("Gemini returned an invalid blueprint. Please try again.");
+        throw new Error("Blueprint execution was not created.");
       }
 
-      const generatedNodes = result.nodes;
-      const generatedEdges = result.edges;
+      let output: unknown;
+      const pollingController = new AbortController();
+      const pollingTimeoutId = window.setTimeout(
+        () => pollingController.abort(),
+        STATUS_POLL_TIMEOUT_MS,
+      );
+      try {
+        while (true) {
+          await waitForExecutionUpdate(pollingController.signal);
+          const statusResponse = await fetch(
+            `/api/generate-blueprint?runId=${encodeURIComponent(triggerResponse.runId)}`,
+            { cache: "no-store", signal: pollingController.signal },
+          );
+          const statusResult: unknown = await statusResponse.json();
+          if (!statusResponse.ok) {
+            const message =
+              isRecord(statusResult) && typeof statusResult.error === "string"
+                ? statusResult.error
+                : "Blueprint generation failed.";
+            throw new Error(message);
+          }
+          if (
+            !isRecord(statusResult) ||
+            typeof statusResult.status !== "string"
+          ) {
+            throw new Error("Blueprint execution returned an invalid status.");
+          }
+          if (
+            statusResult.status === "COMPLETED" ||
+            statusResult.status === "SUCCESS"
+          ) {
+            output = statusResult.output;
+            break;
+          }
+        }
+      } catch (pollingError) {
+        if (pollingController.signal.aborted) {
+          throw new Error(
+            "Blueprint generation is still pending after 20 seconds. Please try again.",
+          );
+        }
+        throw pollingError;
+      } finally {
+        window.clearTimeout(pollingTimeoutId);
+      }
+
+      if (
+        !isRecord(output) ||
+        !Array.isArray(output.nodes) ||
+        !Array.isArray(output.edges) ||
+        !output.nodes.every(isCanvasNode) ||
+        !output.edges.every(isCanvasEdge)
+      ) {
+        throw new Error("Generated blueprint had an invalid format.");
+      }
+
+      const generatedNodes = output.nodes;
+      const generatedEdges = output.edges;
+      const currentCanvas = canvasRef.current;
       const availableNodeIds = new Set([
-        ...nodes.map((node) => node.id),
+        ...currentCanvas.nodes.map((node) => node.id),
         ...generatedNodes.map((node) => node.id),
       ]);
       if (
@@ -142,8 +224,12 @@ export function PromptBar({
         throw new Error("Gemini returned links to unknown nodes. Please try again.");
       }
 
-      setNodes((currentNodes) => [...currentNodes, ...generatedNodes]);
-      setEdges((currentEdges) => [...currentEdges, ...generatedEdges]);
+      const layouted = getLayoutedElements(
+        [...currentCanvas.nodes, ...generatedNodes],
+        [...currentCanvas.edges, ...generatedEdges],
+      );
+      setNodes(layouted.nodes);
+      setEdges(layouted.edges);
       setPrompt("");
     } catch (submissionError) {
       setError(
@@ -201,7 +287,7 @@ export function PromptBar({
       </form>
       <p
         id="blueprint-generation-error"
-        role="status"
+        role="alert"
         aria-live="polite"
         className={`mt-2 text-center text-xs text-rose-400 ${error ? "" : "sr-only"}`}
       >

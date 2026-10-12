@@ -39,7 +39,7 @@ export function PropertyPanel({
           <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
             Node settings
           </p>
-          <h2 className="mt-1 text-base font-semibold text-[var(--text-primary)]">
+          <h2 className="mt-1 text-base font-semibold tracking-tight text-white">
             Customize block
           </h2>
         </div>
@@ -120,7 +120,7 @@ export function PropertyPanel({
                     className={`flex h-10 items-center justify-center rounded-lg border transition-transform hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-focus)] ${
                       selected
                         ? "border-[var(--accent-focus)] ring-1 ring-[var(--accent-focus)]"
-                        : "border-white/[0.12]"
+                        : "border-white/[0.08]"
                     }`}
                     style={{ backgroundColor: color.background }}
                   >
