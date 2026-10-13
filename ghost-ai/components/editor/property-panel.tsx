@@ -30,7 +30,7 @@ export function PropertyPanel({
       aria-label="Node properties"
       aria-hidden={!node}
       inert={!node}
-      className={`absolute bottom-4 right-4 top-4 z-20 flex w-[min(22rem,calc(100%-2rem))] flex-col overflow-y-auto rounded-2xl border border-white/[0.08] bg-[var(--panel)] p-5 shadow-2xl shadow-black/40 transition-transform duration-200 ease-out ${
+      className={`fixed right-0 top-0 z-50 flex h-full w-full flex-col overflow-y-auto rounded-none border border-white/[0.08] bg-[var(--panel)] p-5 shadow-2xl shadow-black/40 transition-transform duration-200 ease-out sm:w-[360px] md:absolute md:bottom-4 md:right-4 md:top-4 md:z-20 md:h-auto md:w-[min(22rem,calc(100%-2rem))] md:rounded-2xl ${
         node ? "translate-x-0" : "pointer-events-none translate-x-[calc(100%+1rem)]"
       }`}
     >

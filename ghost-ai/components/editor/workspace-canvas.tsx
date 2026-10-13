@@ -378,6 +378,8 @@ function CanvasContents({
         fitViewOptions={{ padding: 0.3 }}
         minZoom={0.2}
         maxZoom={1.8}
+        panOnDrag
+        zoomOnPinch
         colorMode="dark"
         proOptions={{ hideAttribution: true }}
       >
@@ -425,10 +427,10 @@ function CanvasContents({
         onNodeDelete={handleDeleteNode}
       />
 
-      <div className="pointer-events-auto absolute bottom-5 left-5 z-10 flex max-w-[calc(100%-2.5rem)] flex-wrap items-center gap-2 rounded-xl border border-white/[0.08] bg-[var(--panel)]/95 p-2 shadow-xl backdrop-blur">
+      <div className="pointer-events-auto absolute bottom-5 left-5 z-10 flex max-w-[calc(100%-2.5rem)] flex-wrap items-center justify-center gap-2 rounded-xl border border-white/[0.08] bg-[var(--panel)]/95 p-2 text-xs shadow-xl backdrop-blur md:p-4 md:text-sm">
         <button
           type="button"
-          className="inline-flex h-9 items-center gap-2 rounded-lg border border-white/[0.06] bg-background px-3 text-xs font-medium text-[var(--text-primary)] transition-colors hover:border-[var(--accent-focus)]/50 hover:bg-white/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-focus)]"
+          className="inline-flex h-9 items-center gap-2 rounded-lg border border-white/[0.06] bg-background px-3 font-medium text-[var(--text-primary)] transition-colors hover:border-[var(--accent-focus)]/50 hover:bg-white/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-focus)]"
           onClick={handleAddNode}
         >
           <Plus aria-hidden="true" className="h-3.5 w-3.5 text-[var(--accent-focus)]" />

@@ -40,7 +40,7 @@ export function EditorWorkspace({
   }
 
   return (
-    <div className="flex h-screen w-screen flex-col overflow-hidden bg-background">
+    <div className="flex h-dvh min-h-0 w-full min-w-0 flex-col overflow-hidden bg-background">
       <EditorNavbar
         isSidebarOpen={isSidebarOpen}
         onMenuClick={toggleSidebar}
